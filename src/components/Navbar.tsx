@@ -9,13 +9,22 @@ const poppins = Poppins({
   subsets: ['latin'],
 });
 
+// Type for Supabase user
+type User = {
+  id: string;
+  email?: string | null;
+  user_metadata?: Record<string, unknown>;
+};
+
 export default function Navbar() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user ?? null);
-    });
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) setUser(data.user as User);
+    };
+    fetchUser();
   }, []);
 
   const handleLogout = async () => {
@@ -25,9 +34,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav
-      className="bg-blue-600 text-white px-4 h-20 flex justify-between items-center fixed top-0 left-0 w-full z-50 shadow-md"
-    >
+    <nav className="bg-blue-600 text-white px-4 h-20 flex justify-between items-center fixed top-0 left-0 w-full z-50 shadow-md">
       <div className={`text-2xl font-extrabold tracking-wide ${poppins.className}`}>
         <Link href="/">Support Ticket System</Link>
       </div>
