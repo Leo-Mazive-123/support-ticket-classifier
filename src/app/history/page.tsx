@@ -27,18 +27,20 @@ export default function HistoryPage() {
     setIsLoading(true);
 
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    if (!user?.email) {
       setTickets([]);
       setIsLoading(false);
       return;
     }
 
     // Fetch user_id
-    const { data: userRecord } = await supabase
+    const { data: userRecordData } = await supabase
       .from('users')
       .select('user_id')
       .eq('email', user.email)
       .single();
+
+    const userRecord = userRecordData as UserRecord | null;
 
     if (!userRecord) {
       setTickets([]);
@@ -50,7 +52,7 @@ export default function HistoryPage() {
     const { data: ticketData } = await supabase
       .from('tickets')
       .select('ticket_id, ticket_text, submitted_at, predictions(predicted_department, confidence_score)')
-      .eq('user_id', (userRecord as any).user_id)
+      .eq('user_id', userRecord.user_id)
       .order('submitted_at', { ascending: false });
 
     setTickets((ticketData as Ticket[]) || []);
