@@ -5,6 +5,10 @@ import Link from 'next/link'; // Fix Link error
 import { motion } from 'framer-motion'; // Ensure framer-motion is installed
 import { Bot, ShieldCheck, Zap, Users2, Cpu, HelpCircle, SendHorizonal } from 'lucide-react'; // Ensure lucide-react is installed
 
+
+
+export const dynamic = 'force-dynamic';
+
 export default function AboutPage() {
   return (
     <div className="bg-white text-gray-800 min-h-screen">

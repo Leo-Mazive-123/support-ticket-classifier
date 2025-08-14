@@ -19,6 +19,10 @@ type UserRecord = {
   user_id: string;
 };
 
+
+export const dynamic = 'force-dynamic';
+
+
 export default function HistoryPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
