@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabaseClient';
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 import { Poppins } from 'next/font/google';
 
 const poppins = Poppins({
@@ -9,7 +9,6 @@ const poppins = Poppins({
   subsets: ['latin'],
 });
 
-// Type for Supabase user
 type User = {
   id: string;
   email?: string | null;
@@ -20,11 +19,11 @@ export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const getUser = async () => {
       const { data } = await supabase.auth.getUser();
-      if (data.user) setUser(data.user as User);
+      setUser(data.user ?? null);
     };
-    fetchUser();
+    getUser();
   }, []);
 
   const handleLogout = async () => {
@@ -44,10 +43,7 @@ export default function Navbar() {
         <Link href="/submit" className="hover:text-gray-200">Submit</Link>
         <Link href="/history" className="hover:text-gray-200">History</Link>
         {user && (
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
-          >
+          <button onClick={handleLogout} className="bg-red-500 px-3 py-1 rounded hover:bg-red-600">
             Logout
           </button>
         )}

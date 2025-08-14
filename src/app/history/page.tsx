@@ -23,43 +23,42 @@ export default function HistoryPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchTickets = async () => {
-    setIsLoading(true);
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user?.email) {
-      setTickets([]);
-      setIsLoading(false);
-      return;
-    }
-
-    // Fetch user_id
-    const { data: userRecordData } = await supabase
-      .from('users')
-      .select('user_id')
-      .eq('email', user.email)
-      .single();
-
-    const userRecord = userRecordData as UserRecord | null;
-
-    if (!userRecord) {
-      setTickets([]);
-      setIsLoading(false);
-      return;
-    }
-
-    // Fetch tickets
-    const { data: ticketData } = await supabase
-      .from('tickets')
-      .select('ticket_id, ticket_text, submitted_at, predictions(predicted_department, confidence_score)')
-      .eq('user_id', userRecord.user_id)
-      .order('submitted_at', { ascending: false });
-
-    setTickets((ticketData as Ticket[]) || []);
-    setIsLoading(false);
-  };
-
   useEffect(() => {
+    const fetchTickets = async () => {
+      setIsLoading(true);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setTickets([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch user_id
+      const { data: userRecordData } = await supabase
+        .from('users')
+        .select('user_id')
+        .eq('email', user.email)
+        .single();
+
+      const userRecord = userRecordData as UserRecord | null;
+      if (!userRecord) {
+        setTickets([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch tickets
+      const { data: ticketData } = await supabase
+        .from('tickets')
+        .select('ticket_id, ticket_text, submitted_at, predictions(predicted_department, confidence_score)')
+        .eq('user_id', userRecord.user_id)
+        .order('submitted_at', { ascending: false });
+
+      setTickets((ticketData as Ticket[]) || []);
+      setIsLoading(false);
+    };
+
     fetchTickets();
   }, []);
 
