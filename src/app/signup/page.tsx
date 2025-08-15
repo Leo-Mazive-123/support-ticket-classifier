@@ -69,8 +69,9 @@ export default function SignupPage() {
         router.push('/login');
       }, 3000);
 
-    } catch (err: any) {
+    } catch (_err: unknown) {
       setError('An unexpected error occurred.');
+      console.error('Signup error:', _err);
     }
   };
 
@@ -119,12 +120,9 @@ export default function SignupPage() {
             />
             <button
               type="button"
-              className={`
-                absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600 
+              className={`absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600 
                 hover:text-gray-800 transition-transform duration-300 
-                ${showPassword ? 'rotate-180' : 'rotate-0'}
-                hover:scale-125
-              `}
+                ${showPassword ? 'rotate-180' : 'rotate-0'} hover:scale-125`}
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -143,12 +141,9 @@ export default function SignupPage() {
             />
             <button
               type="button"
-              className={`
-                absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600 
+              className={`absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600 
                 hover:text-gray-800 transition-transform duration-300 
-                ${showConfirmPassword ? 'rotate-180' : 'rotate-0'}
-                hover:scale-125
-              `}
+                ${showConfirmPassword ? 'rotate-180' : 'rotate-0'} hover:scale-125`}
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
               {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
