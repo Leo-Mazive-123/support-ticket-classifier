@@ -1,43 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { classify } from '@/lib/classifier';
+import { createClient } from '@supabase/supabase-js';
 
-// Map numeric keys to departments
-const departmentMap: Record<string, string> = {
-  '0': 'IT',
-  '1': 'HR',
-  '2': 'Finance',
-};
-
-// Simple keyword-based classifier
-const keywords: Record<string, string[]> = {
-  '0': ['computer', 'network', 'password', 'system', 'login'],
-  '1': ['leave', 'recruitment', 'interview', 'hiring', 'hr'],
-  '2': ['payroll', 'salary', 'finance', 'payment', 'invoice'],
-};
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
 
 export async function POST(req: NextRequest) {
-  const { ticket_text } = await req.json();
+  const { ticket_text, user_id } = await req.json();
 
-  if (!ticket_text)
-    return NextResponse.json({ error: 'No ticket text provided' }, { status: 400 });
+  if (!ticket_text || !user_id) {
+    return NextResponse.json({ error: 'Missing ticket text or user ID' }, { status: 400 });
+  }
 
-  const text = ticket_text.toLowerCase();
-  const scores: Record<string, number> = { '0': 0, '1': 0, '2': 0 };
+  // Run the improved classifier
+  const result = classify(ticket_text);
 
-  // Count keyword matches for each department
-  Object.keys(keywords).forEach((key) => {
-    keywords[key].forEach((word) => {
-      if (text.includes(word)) scores[key] += 1;
-    });
-  });
+  // Insert into Supabase with predictions
+  const { data, error } = await supabase
+    .from('tickets')
+    .insert([{
+      user_id,
+      ticket_text,
+      predictions: [result],
+    }])
+    .select(); // select returns the inserted row(s)
 
-  // Find the department with the highest score
-  let maxKey: string = '0';
-  Object.keys(scores).forEach((key) => {
-    if (scores[key] > scores[maxKey]) maxKey = key;
-  });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
-  const confidence = scores[maxKey] / Math.max(...Object.values(scores));
-  const department = departmentMap[maxKey];
-
-  return NextResponse.json({ department, confidence });
+  return NextResponse.json(data?.[0]); // return the inserted ticket with predictions
 }

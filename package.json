@@ -10,17 +10,20 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.55.0",
+    "csv-parse": "^6.1.0",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.539.0",
     "natural": "^8.1.0",
     "next": "15.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-hot-toast": "^2.5.2",
     "react-icons": "^5.5.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/csv-parse": "^1.1.12",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
