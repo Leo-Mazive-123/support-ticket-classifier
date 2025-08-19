@@ -2,6 +2,7 @@
 import Navbar from '@/components/Navbar';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { classify } from '@/lib/classifier';
 
 export default function SubmitTicket() {
   const [ticketText, setTicketText] = useState('');
@@ -21,65 +22,59 @@ export default function SubmitTicket() {
       return;
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setError('User not found');
-      setLoading(false);
-      return;
-    }
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not found');
 
-    const { data: userRecord } = await supabase
-      .from('users')
-      .select('user_id')
-      .eq('email', user.email)
-      .single();
+      // Get user record
+      const { data: userRecord } = await supabase
+        .from('users')
+        .select('user_id')
+        .eq('email', user.email)
+        .single();
 
-    const userId = userRecord?.user_id;
-    if (!userId) {
-      setError('User record not found');
-      setLoading(false);
-      return;
-    }
+      const userId = userRecord?.user_id;
+      if (!userId) throw new Error('User record not found');
 
-    const { data: ticketData, error: ticketError } = await supabase.from('tickets').insert({
-      user_id: userId,
-      ticket_text: ticketText,
-      actual_department: null,
-      confidence_score: null,
-    }).select().single();
+      // Insert ticket
+      const { data: ticketData, error: ticketError } = await supabase.from('tickets').insert({
+        user_id: userId,
+        ticket_text: ticketText,
+        actual_department: null,
+        confidence_score: null,
+      }).select().single();
 
-    if (!ticketData || ticketError) {
-      setError(ticketError?.message || 'Ticket submission failed');
-      setLoading(false);
-      return;
-    }
+      if (!ticketData || ticketError) throw new Error(ticketError?.message || 'Ticket submission failed');
 
-    // Simulate prediction
-    const departments = ['IT', 'HR', 'Finance'];
-    const dept = departments[Math.floor(Math.random() * departments.length)];
-    const confidence = Math.random() * 0.5 + 0.5;
+      // Use classifier for prediction
+      const result = classify(ticketText);
 
-    const { data: predictionData } = await supabase.from('predictions').insert({
-      ticket_id: ticketData.ticket_id,
-      predicted_department: dept,
-      confidence_score: confidence,
-    }).select().single();
-
-    if (predictionData) {
-      setPrediction({
-        department: predictionData.predicted_department,
-        confidence: predictionData.confidence_score,
+      // Insert prediction
+      await supabase.from('predictions').insert({
+        ticket_id: ticketData.ticket_id,
+        predicted_department: result.predicted_department,
+        confidence_score: result.confidence_score,
       });
-    }
 
-    setTicketText('');
-    setLoading(false);
+      // Show prediction immediately
+      setPrediction({
+        department: result.predicted_department,
+        confidence: result.confidence_score,
+      });
+
+      setTicketText('');
+    } catch (err: any) {
+      setError(err.message || 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div
-      className="min-h-screen flex flex-col bg-cover bg-center "
-      style={{ backgroundImage: "url('/robo.png') " }}
+      className="min-h-screen flex flex-col bg-cover bg-center"
+      style={{ backgroundImage: "url('/robo.png')" }}
     >
       <Navbar />
       <main className="flex flex-col items-center justify-center flex-1 p-4">
