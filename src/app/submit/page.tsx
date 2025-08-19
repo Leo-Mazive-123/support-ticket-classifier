@@ -50,7 +50,7 @@ export default function SubmitTicket() {
       // Use classifier for prediction
       const result = classify(ticketText);
 
-      // Insert prediction
+      // Insert prediction (optional; can skip if you want frontend-only)
       await supabase.from('predictions').insert({
         ticket_id: ticketData.ticket_id,
         predicted_department: result.predicted_department,
@@ -64,8 +64,12 @@ export default function SubmitTicket() {
       });
 
       setTicketText('');
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     } finally {
       setLoading(false);
     }
